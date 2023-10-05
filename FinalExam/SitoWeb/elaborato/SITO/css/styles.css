@@ -1,0 +1,8 @@
+img {
+  height: auto;
+  width: auto;
+}
+
+.paypal-payment-button{
+  max-width: 100px;
+}

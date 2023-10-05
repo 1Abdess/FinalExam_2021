@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALGORITMO RSA</title>
+</head>
+<body>
+    <p>[1] <br>
+        per provare usare i numeri: <br>
+        p = 79 <br>
+        q = 97 <br>
+        e = 101 <br>
+        d = 2669 <br>
+    </p>
+
+    <center>
+        <form action="get">
+            <input type="text" id="P" placeholder="Inserire P"><br>
+            <input type="text" id="Q" placeholder="Inserire Q"><br>
+            <input type="text" id="E" placeholder="Inserire E"><br>
+            <input type="text" id="M" placeholder="Messaggio"><br>
+            <input type="text" id="D" placeholder="Inserire D"><br><br>
+    
+            <input type="button" VALUE="INVIA" id="INVIA">
+        </form>
+    </center>
+
+    <script>
+        document.getElementById("INVIA").addEventListener("click",function(){
+            var p = document.getElementById("P").value;
+            var q = document.getElementById("Q").value;
+            var e = document.getElementById("E").value;
+            var d = document.getElementById("D").value;
+            var m = document.getElementById("M").value;
+
+            var N = calcoloN(p,q);
+            //console.log();
+            var Phi = calcoloPhiN(p,q);
+
+            var cript = [100];
+            var array = SalvataggioEsp(e,m,N);
+            cript = array[0];
+            ris2 = array[1];
+            lung = array[2];
+
+            var ME = Crypt(cript,m,N,ris2,lung);
+
+
+            var array2 = SalvataggioEspDecrypt(d,ME,N);
+            cript2 = array2[0];
+            ris3 = array2[1];
+            lung2 = array2[2];
+
+
+            DeCrypt(cript2,N,ris3,lung2);
+
+            console.log(" ");
+            console.log(" ");
+
+        });
+        function calcoloN(p,q){
+            var N = p*q;
+            console.log("la N è: "+N);
+            return N; 
+        }
+
+        function calcoloPhiN(p,q){
+            var PhiN = (p-1)*(q-1);
+            console.log("la Phi di N è: "+ PhiN);
+            return PhiN;
+        }
+
+        function SalvataggioEsp(e,m,N){
+            var acc = 0;
+            var base = 2;
+            var exp = 12;
+            var x = 0;
+            var lung = 0;
+
+            let Numsalv = [100];
+
+            while(acc!=e){
+                for(var k=1; k<exp; k++){
+                    base = 2 * base;
+                }
+                if(exp==0){
+                    base = 1;
+                }
+                
+                //calcolo e salvataggio degli esponenziali che servono
+                if(e>base){
+                    if((acc+base)<=e){
+                        acc += base;
+                        Numsalv[x] = exp;
+                        lung++;
+                        x++;
+                    }
+                }
+                exp--;
+                base=2;
+            }
+
+            var n1 = 0;
+            var n2 = 0;
+            var ris = 0;
+
+            var Cript = [100];
+
+            for(var k=0; k<12; k++){
+                if(k==0){
+                    n1 = Math.pow(2,k);
+                    n2 = Math.pow(m,n1);
+                    ris = n2 % N; 
+                    
+                    Cript[k]=ris;
+
+                }
+                else{
+                    var h = Cript[k-1];
+
+                    n2 = Math.pow(h, 2);
+                    ris = n2 % N;
+                    
+                    Cript[k] = ris;
+                }
+
+
+            }
+
+            var ris2 = [lung];
+            for(var k=0;k<lung;k++){
+                var h = Numsalv[k];
+                ris2[k] = h;
+
+            }
+
+            return [Cript, ris2, lung];
+        }
+
+        function Crypt(cript,m,N,ris2,lung){
+            var x1=0; var x2=0; var x3; var k=0;
+	
+            while(k < lung-1){
+                if(k==0){
+                    x1 = ris2[k];
+                }
+                x2 = ris2[k+1];
+
+
+                if(k==0){
+                    x3 = cript[x1] * cript[x2];
+                }
+                else{
+                    x3=x1 * cript[x2];
+                }
+                x1 = x3 % N;
+                k++;
+            }
+            
+            var ME = x1;
+            console.log("il messaggio criptato è: "+ME);
+            return ME;
+        }
+
+        function SalvataggioEspDecrypt(D,ME,n){           
+            var acc=0; var exp=12; var base=2; var x=0; var lung=0;
+            let Numsalv = [100];
+
+            var cript = [100];
+            
+            while(acc != D){
+                for(var k=1; k<exp; k++){
+                    base = 2*base;
+                }
+                if(exp == 0){
+                    base=1;
+                }
+                
+                if(D > base){
+                    if((acc+base)<=D){
+                        acc+=base;
+                        Numsalv[x]=exp;
+                        lung++;
+                        x++;
+                    }
+                }
+
+                exp--;
+                base=2;
+            }
+            
+            
+            var n1=0; var n2=0; var ris=0;
+            
+            //calcolo degli esponenziali
+            for(var k=0; k<13; k++){
+                if(k==0){
+                    n1 = Math.pow(2,k);
+                    n2 = Math.pow(ME,n1);
+                    ris = n2 % n;
+                    
+                    
+                    cript[k] = ris;
+                }
+                else{
+                    n2 = Math.pow(cript[k-1],2);
+                    ris = n2 % n;
+                    
+                    cript[k]=ris;
+                }
+            }
+            
+            
+            for(var k=0;k<lung;k++){
+                var h = Numsalv[k];
+                ris2[k] = h;		
+            }
+
+
+            return [cript, ris2, lung];
+        }
+
+        function DeCrypt(cript,N,ris2,lung){
+            var x1=0;
+            var x2=0;
+            var x3;
+            var k=0;
+	
+            while(k < lung-1){
+                if(k==0){
+                    x1 = ris2[k];
+                }
+                x2 = ris2[k+1];
+                
+                if(k==0){
+                    x3 = cript[x1] * cript[x2];
+                }
+                else{
+                    x3 = x1 * cript[x2];
+                }
+
+                x1 = x3 % N;
+                k++;
+            }
+
+            console.log("Il messaggio decriptato è: "+x1);
+        }
+
+    </script>
+</body>
+</html>
